@@ -1,0 +1,139 @@
+﻿@page "/Adults"
+@using BlazorServer.Persistence
+@using BlazorServer.Models
+@inject IFileAdapter Adapter
+@inject NavigationManager NavigationManager
+
+<h3>List of Adults</h3>
+
+<p>
+    Filter by name: <input type="text" @oninput="@((arg) => FilterByName(arg))" style="width: 150px"/> Filter by minimum age 
+    <input type="number" @oninput="@(arg => FilterByAge(arg))" style="width: 50px">
+</p>
+@if (adultsList == null)
+{
+    <p>
+        <em>Loading...</em>        
+    </p>
+} else if (!adultsList.Any())
+{
+    <p>
+        <em>No Adults stored in the system. Please add some.</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Sex</th>
+            <th>Age</th>
+            <th>Job Title</th>
+            <th>Height</th>
+            <th>Weight</th>
+            <th>Hair Color</th>    
+            <th>Eye Color</th>
+            <AuthorizeView Policy="Editor">
+               <th>Remove</th>
+                <th>Edit</th> 
+            </AuthorizeView>
+            
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var a in AdultsToShow)
+        {
+            <tr>
+                <td>@a.Id</td>
+                <td>@a.FirstName</td>
+                <td>@a.LastName</td>
+                <td>@a.Sex</td>
+                <td>@a.Age</td>
+                
+                <td>@a.Height</td>
+                <td>@a.Weight</td>
+                <td>@a.HairColor</td>
+                <td>@a.EyeColor</td>
+                <AuthorizeView Policy="Editor">
+                    <td>
+                        <button @onclick="@(() => RemoveAdult(a.Id))">
+                            <i class="oi oi-trash" style="color:#ff0000"/>
+                        </button>
+                    </td>
+                    
+                    <td>
+                        <button @onclick="@(() => Edit(a.Id))">
+                            <i class="oi oi-pencil" style="color: #1b6ec2"/>
+                        </button>
+                    </td>
+                </AuthorizeView>
+                
+                
+                
+            </tr>
+        }
+        </tbody>
+    </table>
+    
+}
+@code {
+    private List<Adult> adultsList;
+    private string? name;
+    private int? minimumAge;
+    private IList<Adult> AdultsToShow;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        adultsList = await Adapter.GetAdultsAsync();
+        AdultsToShow = adultsList;
+    }
+
+    private void FilterByName(ChangeEventArgs changeEventArgs)
+    {
+        name = null;
+        try
+        {
+            name = changeEventArgs.Value.ToString();
+        }
+        catch (Exception e)
+        {}
+        ExecuteFilter();
+    }
+
+    private void ExecuteFilter()
+    {
+        AdultsToShow = adultsList.Where(a => (name != null && (a.FirstName.Contains(name) || a.LastName.Contains(name)) || name == null)
+                                             && ((minimumAge != null && a.Age >= minimumAge) || minimumAge == null)).ToList();
+    }
+
+    private void FilterByAge(ChangeEventArgs changeEventArgs)
+    {
+        minimumAge = null;
+        try
+        {
+            minimumAge = int.Parse(changeEventArgs.Value.ToString());
+        }
+        catch (Exception e)
+        {
+        }
+        ExecuteFilter();
+    }
+
+    private async Task RemoveAdult(int Id)
+    {
+        Adult adult = adultsList.First(a => a.Id == Id);
+        await Adapter.RemoveAdultAsync(adult);
+        adultsList.Remove(adult);
+        AdultsToShow.Remove(adult);
+    }
+
+    private void Edit(int id)
+    {
+        NavigationManager.NavigateTo($"EditAdult/{id}");
+    }
+
+}

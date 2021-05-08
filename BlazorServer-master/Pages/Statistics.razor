@@ -1,0 +1,125 @@
+﻿@page "/Statistics"
+@using BlazorServer.Persistence
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IStatisticsModel StatisticsModel
+<AuthorizeView Policy="DataStats">
+    <Authorized>
+       <h1>Age Distribution Among the Adults</h1>
+           <div class="row">
+               <div class="col-md-6 col-sm-12 p-4">
+                   <RadzenChart>
+                       <RadzenPieSeries Data="@ageGroups" Title="Count" CategoryProperty="AgeGroup" ValueProperty="Count"/>
+                   </RadzenChart>
+               </div>
+           </div> 
+        <h1>Eye Color Distribution</h1>
+            <div class="row">
+                <div class="col-md-6 col-sm-12 p-4">
+                    <RadzenChart>
+                        <RadzenDonutSeries Data="@EyeColorGroups" CategoryProperty="EyeColor" ValueProperty="Percentage">
+                            <TitleTemplate>
+                                <div class="rz-donut-content">
+                                    <div>Eye Color</div>
+                                </div>
+                            </TitleTemplate>
+                        </RadzenDonutSeries>
+                    </RadzenChart>
+                </div>
+            </div>
+    </Authorized>
+    <NotAuthorized>
+         <p>You are not authorized to view this page...</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    
+    private DataItem[] ageGroups;
+    private ColorItem[] EyeColorGroups;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        ageGroups = new DataItem[]
+        {
+            new DataItem
+            {
+                AgeGroup = "0-29 years",
+                Count = await StatisticsModel.GetAdultAgeGroupAsync(0, 29)
+            },
+            new DataItem
+            {
+                AgeGroup = "30-39 years",
+                Count = await StatisticsModel.GetAdultAgeGroupAsync(30, 39)
+            },
+            new DataItem
+            {
+                AgeGroup = "40-49 years",
+                Count = await StatisticsModel.GetAdultAgeGroupAsync(40, 49)
+            },
+            new DataItem
+            {
+                AgeGroup = "50-59 years",
+                Count = await StatisticsModel.GetAdultAgeGroupAsync(50, 59)
+            },
+            new DataItem()
+            {
+                AgeGroup = "60+ years",
+                Count = await StatisticsModel.GetAdultAgeGroupAsync(60, 120)
+            }
+        };
+
+        EyeColorGroups = new ColorItem[]
+        {
+            new ColorItem
+            {
+                EyeColor = "Brown",
+                Percentage = decimal.Round((decimal)(await StatisticsModel.GetEyeColorPercentage("Brown")*100),
+                    2,MidpointRounding.AwayFromZero)
+            },
+            new ColorItem
+            {
+                EyeColor = "Blue",
+                Percentage = decimal.Round((decimal) (await StatisticsModel.GetEyeColorPercentage("Blue")*100),
+                    2,MidpointRounding.AwayFromZero)
+            },
+            new ColorItem
+            {
+                EyeColor = "Green",
+                Percentage = decimal.Round((decimal) (await StatisticsModel.GetEyeColorPercentage("Green")*100),
+                    2,MidpointRounding.AwayFromZero)
+            },
+            new ColorItem
+            {
+                EyeColor = "Amber",
+                Percentage = decimal.Round((decimal) (await StatisticsModel.GetEyeColorPercentage("Amber")*100),
+                    2,MidpointRounding.AwayFromZero)
+            },
+            new ColorItem
+            {
+                EyeColor = "Gray",
+                Percentage = decimal.Round((decimal) (await StatisticsModel.GetEyeColorPercentage("Gray")*100),
+                    2,MidpointRounding.AwayFromZero)
+            },
+            new ColorItem
+            {
+                EyeColor = "Other",
+                Percentage = decimal.Round((decimal) (await StatisticsModel.GetEyeColorPercentage("Other")*100),
+                    2,MidpointRounding.AwayFromZero)
+            }
+        };
+
+    }
+
+    class DataItem
+    {
+        public string AgeGroup { get; set; }
+        public int Count { get; set; }
+    }
+
+    class ColorItem
+    {
+        public string EyeColor { get; set; }
+        public decimal Percentage { get; set; }
+    }
+    
+}

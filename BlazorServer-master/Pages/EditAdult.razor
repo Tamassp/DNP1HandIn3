@@ -1,0 +1,80 @@
+﻿@page "/EditAdult/{Id:int}"
+@using BlazorServer.Persistence
+@using BlazorServer.Models
+@inject IFileAdapter FileAdapter
+@inject NavigationManager NavigationManager
+<h3>EditAdult</h3>
+<EditForm Model="@_adult" OnValidSubmit="@SaveAdultAsync">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    <div class="form-group">
+        First name:
+        <InputText type="text" @bind-Value="_adult.FirstName"/>
+    </div>
+    <div class="form-group">
+        Last name:
+        <InputText type="text" @bind-Value="_adult.LastName"/>
+    </div>
+    <div class="form-group">
+        Sex:
+        <InputText type="text" @bind-Value="_adult.Sex"/>
+    </div>
+    <div class="form-group">
+        Age: 
+        <InputNumber @bind-Value="_adult.Age"/>
+    </div>
+    <div class="form-group">
+        Job Title:
+        <InputText type="text" @bind-Value="jobTitle"/>
+    </div>
+    <div class="form-group">
+        Salary: 
+        <InputNumber @bind-Value="salary"/>
+    </div>
+    <div class="form-group">
+        Height: 
+        <InputNumber @bind-Value="_adult.Height"/>
+    </div>
+    <div class="form-group">
+        Weight: 
+        <InputNumber @bind-Value="_adult.Weight"/>
+    </div>
+    <div class="form-group">
+        Hair Color:
+        <InputText type="text" @bind-Value="_adult.HairColor"/>
+    </div>
+    <div class="form-group">
+        Eye Color:
+        <InputText type="text" @bind-Value="_adult.EyeColor"/>
+    </div>
+    <p class="actions">
+        <button class="btn btn-outline-dark" type="submit">Save</button>
+    </p>
+</EditForm>
+
+@code {
+    private Adult _adult = new Adult();
+    [Parameter]
+    public int id { get; set; }
+    private string jobTitle { get; set; }
+    private int salary { get; set; }
+
+    private async Task SaveAdultAsync()
+    {
+        /*_adult.JobTitle = new Job
+        {
+            JobTitle = jobTitle,
+            Salary = salary
+        };*/
+        await FileAdapter.UpdateAsync(_adult);
+        NavigationManager.NavigateTo("Adults");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _adult = await FileAdapter.GetAdultAsync(id);
+        //jobTitle = _adult.JobTitle.JobTitle;
+        //salary = _adult.JobTitle.Salary;
+    }
+
+}
